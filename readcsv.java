@@ -15,7 +15,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import java.util.Arrays;
+import javax.servlet.annotation.WebInitParam;
+import javax.servlet.annotation.WebServlet;
 /**
  *
  * @author dashk
@@ -25,6 +27,43 @@ public class readcsv extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try{
+            
+            
+            response.setContentType("text/html;charset=UTF-8");
+            PrintWriter out = response.getWriter();
+            
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet readfile</title>");  
+            out.println("<meta charset=\"UTF-8\">");
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<form name = \"form1\" action= \"readcsv1\" method=\"post\">");
+            
+            out.println("<p> Наименование </p>");
+            out.println("<p> <input type = \"text\" name = \"nmData\"> </p>");
+            
+            out.println("<p> Краткое описание: </p>");
+            out.println("<p> <input type = \"text\" name = \"descData\" /> </p>");
+            
+            out.println("<p> <input type = \"file\" encrypt = \"multipart/form-data\"  name=\"fl\" /> </p>");
+            out.println("<input type = \"submit\"  value = \"отправить\" id =\"submit\" />");
+                        
+            out.println("</form>");
+            
+        //    @WebServlet (name = "viewController", urlPatterns = {"/view/*"};
+           // if(form1=true){}
+            
+            //Имя загружаемых данных
+            String NameData = request.getParameter ("nmData");
+            /*-----Ввод в БД--------*/
+            
+            //Описание загружаемых данных
+            String DescriptionData = request.getParameter ("descData");
+            /*-----Ввод в БД--------*/
+            
+            
             String filein = request.getParameter("fl");
             File file = new File(filein);
             //создаем объект FileReader для объекта File
@@ -35,38 +74,62 @@ public class readcsv extends HttpServlet {
             String line = reader.readLine();
             String[] subStr;
             
-            String delimeter = ",";
-            subStr = line.split(delimeter);
-       while (line != null) {
+           // char [] ArrStr = line.toCharArray();
             
-            response.setContentType("text/html;charset=UTF-8");
-         PrintWriter out = response.getWriter();
-         
-         for(int i = 0; i < subStr.length; i++) { 
-        // System.out.println(subStr[i]);
-         // while (line != null) {
-         //     subStr = line.split(delimeter);
-         
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet readfile</title>");  
-            out.println("<meta charset=\"UTF-8\">");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>" + subStr[i] + "</h1>");
+            String delimeter = ",(?!\\s)";
+       //     String notDellim = ", ";
+            
+         //   subStr = line.split(delimeter);
+            
+           // line = reader.readLine();
+            subStr = line.split(delimeter);
+            
+            out.println("<h1>Название: " + NameData + "</h1>");
+            out.println("<h2Краткое описание: >" + DescriptionData + "</h2>");
+            
+            out.println("<table wight=50% border=1>");
+            out.println("<tr>"); 
+              for(int i = 0; i < subStr.length; i++) {  //for убрать при out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                      
+                    out.println("<th>");   
+                    out.println( subStr[i]);
+                    out.println("</th>"); 
+                    
+                }
+              out.println("</tr>");
+                            
+              line = reader.readLine();
+              
+            while (line != null) {  
+                
+                //проба игнорирования ", "
+                
+                
+                //разбиваем строку по разделителю
+                subStr = line.split(delimeter); //вкл., если out.println("<p>" + subStr[i] + "</p>"); и out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                out.println("<tr>"); 
+                
+                for(int i = 0; i < subStr.length; i++) {  //for убрать при out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                    
+                    out.println("<td>");    
+                    out.println( subStr[i] );
+                    out.println("</td>");
+
+                }
+                
+                out.println("</tr>");
+             //   out.println("<p>" + Arrays.asList(subStr) + "</p>");
+               
+                // считываем остальные строки в цикле
+                line = reader.readLine(); //вкл., если out.println("<p>" + subStr[i] + "</p>"); и out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                
+            }
+            
+            out.println("</table>");
             out.println("</body>");
             out.println("</html>");
-         //       out.println(line); 
-             
-                // считываем остальные строки в цикле
-              // line = reader.readLine();
-              subStr = line.split(delimeter);
-      
-            }
-         line = reader.readLine();
-       }      
-        }
+            
+        }    
         catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
