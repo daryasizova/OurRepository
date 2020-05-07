@@ -1,8 +1,13 @@
+package serv;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -46,7 +51,8 @@ public class clientview extends HttpServlet {
             out.println("<html>");
             out.println("<head>");
             out.println("<title>Опыты по машинному обучению</title>"); 
-            
+             out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"/>");
+/*          
             out.println("<style>");
             out.println(".center {width:700px;padding:10px; margin:auto;}");
             out.println("table{font-family: \"Lucida Sans Unicode\", \"Lucida Grande\", Sans-Serif;font-size:13px;background: white;max-width:50%;width:960px;border-collapse:collapse;text-align:left;}");
@@ -54,7 +60,7 @@ public class clientview extends HttpServlet {
             out.println("td {border-bottom: 1px solid #ccc;color: #669;padding: 6px 3px;transition: .3s linear;}");
             out.println("tr:hover td {color: #6699ff;");
             out.println("</style>");
-            
+ */           
             out.println("</head>");
             out.println("<body>");
         }
@@ -90,9 +96,14 @@ public class clientview extends HttpServlet {
  //           PrintWriter out = response.getWriter();
             out.println("<div class=\"center\">");
             out.println("<form name = \"startForm\" action= \"clientview?act=addexampleform\" method=\"post\">");
+            out.println("<div class=\"header-h1\">");
+            out.println("<h3> Список Ваших примеров: </h3> ");
+            out.println("</div>");
             
-            out.println("<h3> Примеры: </h3> ");
+            out.println("<div  class=\"container4\">");
+            out.println("<div class=\"buttonauto\">");
             out.println("<input type = \"submit\"  value = \"Добавить новый\" id =\"submit\" />");
+            out.println("</div>");
             //обращение к БД
             Connection con = ConnPool.getConnection();
             String sOp = "select id, nmdata, description from  pr.examples";
@@ -101,10 +112,10 @@ public class clientview extends HttpServlet {
 
             ResultSet resultSet = op.executeQuery(sOp);
             //вывод из БД названий и описаний с ссылками
-             out.println("<div class=\"table\">");
-            out.println("<table wight=\"70%\">");
+             out.println("<table class=\"table1\">");
+         //   out.println("<table wight=\"70%\">");
             out.println("<tr><th>№</th><th>Название</th><th>Краткое описание</th></tr>");
-            out.println("<th>");
+          //  out.println("<th>");
           //  for (int i=0; i<c; i++) {
                 while (resultSet.next()){
             //    out.println("<p> <a href = \" http://localhost:8084/servInterface/clientview?act=cardexample&id= "+ c +"\">");
@@ -113,7 +124,7 @@ public class clientview extends HttpServlet {
                     String desc = resultSet.getString(3);
                //     out.println("<tr><td>");
                     out.println("<tr>");
-                    out.println("<td><a href=\"clientview?act=cardexample&id=" + id + "\">"+ id + "</td><td></a><a href=\"clientview?act=cardexample&id=" + id + "\">" + nm  + "</td><a href=\"clientview?act=cardexample&id=" + id + "\"><td></a>" + desc +"</td></a></tr>");
+                    out.println("<td><a href=\"clientview?act=cardexample&id=" + id + "\">"+ id + "</td><td></a><a href=\"clientview?act=cardexample&id=" + id + "\">" + nm  + "</td><a href=\"clientview?act=cardexample&id=" + id + "\"><td></a><a href=\"clientview?act=cardexample&id=" + id + "\">" + desc +"</td></a></tr>");
                 //  out.println("</td></tr>");
                 }
                 out.println("</table>");
@@ -138,21 +149,35 @@ public class clientview extends HttpServlet {
         try {
             response.setContentType("text/html;charset=UTF-8");
             PrintWriter out = response.getWriter();
-         
+            out.println("<div  class=\"container\">");
             out.println("<form name = \"newExample\" action= \"clientview?act=addexample\" method=\"post\">");
+            out.println("<div class=\"header-h1 header-h1\">");
             out.println("<h1> Ввод названия и описания примера </h1>");
-            out.println("<p> Наименование ");
+            out.println("</div> <br>");
             
-           
-            out.println(" <input type = \"text\" name = \"nmData\"> </p>");
+            out.println("<div class=\"container2\" align=\"left\">");
+            out.println("<div class=\"container3\">");
+            out.println("<div class=\"сontainer-text\">");
+            out.println("<p> Наименование: </p> ");
+            out.println("</div> ");
+                     
+            out.println(" <input type = \"text\" name = \"nmData\"> ");
+            out.println("</div> ");
             
-            out.println("<p> Краткое описание: ");
-            out.println(" <input type = \"text\" name = \"descData\" /> </p>");
-          
+            out.println("<div class=\"container3\">");
+            out.println("<div class=\"сontainer-text\">");
+            out.println("<p> Краткое описание: </p>");
+            out.println("</div> ");
+            out.println(" <input type = \"text\" name = \"descData\" />");
+            out.println("</div> ");
+            
+            out.println("<div class=\"container-button\" align=left>");
             out.println("<input type = \"submit\" value = \"Сохранить\" id =\"submit\" />");
             out.println("<input type=\"button\" onclick=\"history.back();\" value=\"Назад\">");
-                       
-            out.println("</form>");        
+            out.println("</div> "); 
+            out.println("</div> ");
+            out.println("</form>"); 
+            out.println("</div> ");
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -172,6 +197,7 @@ public class clientview extends HttpServlet {
     			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
     			return;
     		}
+                String sId = request.getParameter("id");
                 
                 System.out.println("--- 1 ---");
      
@@ -214,6 +240,7 @@ public class clientview extends HttpServlet {
     			    	//в противном случае рассматриваем как файл
     			        processUploadedFile(item);
     			    }
+                            
     			}
                 //        String fn = null;
                          session.setAttribute("fn", item.getName());
@@ -268,40 +295,338 @@ public class clientview extends HttpServlet {
             throws ServletException, IOException {
         PrintWriter out = response.getWriter();
         try {
+            //id Примера
             String id = request.getParameter("id");
             
             response.setContentType("text/html;charset=UTF-8");
             
+            out.println("<div class=\"center\">");
+            out.println("<div class=\"header-h1 header-h1\">");
             out.println("<h1> Ваш выбранный пример </h1>");
+            out.println("</div>");
             
             Connection con = ConnPool.getConnection();
             String sOp = "select nmdata, description from  pr.examples where id="+id;
         
             Statement op = con.createStatement();
-
+            
             ResultSet resultSet = op.executeQuery(sOp);
             resultSet.next();
             String nm = resultSet.getString(1);
             String desc = resultSet.getString(2);
             
-            out.println("<form action=\"clientview?act=UploadFile&id="+id+"\" method=\"post\" enctype=\"multipart/form-data\">");
-            out.println("<p> Наименование: " +  nm + "</p>");
+            out.println("<p class=\"style-p\"> Наименование: " +  nm + "</p>");
                       
-            out.println("<p> Краткое описание: " + desc + "</p>");
-                      
-            out.println ("<p><input type=\"file\" name=\"f\">");
-            out.println ("<input type=\"submit\" value=\"Отправить\"> </p>");
-            out.println("<input type=\"button\" onclick=\"history.back();\" value=\"Назад\">");
+            out.println("<p class=\"style-p\"> Краткое описание: " + desc + "</p>");
             
+            String sOps = "select id from  pr.colnm where idexample="+id;
+  //           Statement op = con.createStatement();
+           ResultSet resId = op.executeQuery(sOps);
+           
+            if (resId.next()) {
+                    
+                
+                out.println("<h3>Ваши данные</h3>");
+                out.println("<div class=\"line1\">");
+                //выборка заголовков
+                String qOp = "select name from  pr.colnm where idexample="+id +" order by num";
+                 ResultSet resCol = op.executeQuery(qOp);
+                 
+                out.println("<table class=\"table2\">");
+                out.println("<tr>"); 
+                while (resCol.next()) { 
+                      String nmcol = resCol.getString(1);
+                    out.println("<th>");   
+                    out.println( nmcol);
+                    out.println("</th>"); 
+                }
+                out.println("</tr>");
+                int ttype;
+                String valStr;
+                int valDoub;
+                
+                boolean pr = true;
+                int iR = 0;
+                int num=0;
+                while (pr && num<10){
+                    num++;
+                    String sqOp = "select ttype, valstr, valdouble from pr.tbcell, pr.colnm"
+                        + " where pr.tbcell.idcol=pr.colnm.id and pr.colnm.idexample="+id+" and pr.tbcell.numrow="+iR+" order by pr.colnm.num";
+                    
+                    ResultSet resRow = op.executeQuery(sqOp);
+                    out.println("<tr>");
+                    while (resRow.next()) {
+                        ttype = resRow.getInt(1);
+                        valStr = resRow.getString(2);
+                        valDoub = resRow.getInt(3);
+
+                        if(ttype == 1){
+                            out.println("<td>");   
+                            out.println( valStr);
+                            out.println("</td>");
+                        }
+                        else {
+                            out.println("<td>");   
+                            out.println( valDoub);
+                            out.println("</td>");
+                        }                    
+                        iR++;
+                    }
+                out.println("</tr>");
+                }                
+                out.println("</table>");
+                out.println("</div>");
+                
+              //  out.println("<div class=\"header-h1\">"); 
+                out.println("<h3>Список Ваших опытов</h3>"); 
+            //    out.println("</div>");
+                //вывод списка сохраненных опытов
+                String ssOp = "select id, nametask, descrtask from  pr.task where idexample="+id;
+                ResultSet restask = op.executeQuery(ssOp);
+                
+                while(restask.next()) {
+                    int idt = restask.getInt(1);
+                    String nmt = restask.getString(2);
+                    String desct = restask.getString(3);
+                    
+                    out.println("<p class=\"style-p\"><a href=\"clientview?act=cardtask&id="+id+"&idt="+idt +"\">" + nmt+ "     " +desct + "</a></p>"); 
+                }
+                
+                out.println("<form action=\"clientview?act=addtaskform&id="+id+"\" method=\"post\" enctype=\"multipart/form-data\">");               
+                out.println ("<input type=\"submit\" value=\"Добавить опыт\">");
+                out.println("</form>");  
+                
+            }
+            else {
+                out.println("<form action=\"clientview?act=UploadFile&id="+id+"\" method=\"post\" enctype=\"multipart/form-data\">");          
+                out.println ("<p><input type=\"file\" name=\"f\">");
+                out.println ("<input type=\"submit\" value=\"Предпросмотр\"> </p>");
+                out.println("</form>");  
+            }
+            
+            out.println("<form action=\"clientview?act=startform\"\" method=\"post\" enctype=\"multipart/form-data\">");
+            out.println("<input type=\"submit\" value=\"На главную\">");
+            out.println("</form>");
+            out.println("</div>");
+            out.println("</div>");
             ConnPool.putConnection(con);
-            out.println("</form>");         
+                     
         }
+        
         catch ( SQLException e ) {
        out.println("<p>cardExample не выполнено !!! " + e.getMessage() + "<p>") ;;
       }
       catch ( InterruptedException ei ) {
           ei.getMessage();
       }        
+    }
+    
+    //---------Карточка опыта с выбором метода
+    public void cardTask (HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        PrintWriter out = response.getWriter();
+        try {
+                response.setContentType("text/html;charset=UTF-8");
+                //id опыта
+                String sId = request.getParameter("idt");
+                //id примера
+                String id = request.getParameter("id");
+                
+                out.println("<div class=\"center\">");
+                out.println("<div class=\"header-h1 header-h1\">");
+                out.println("<h1> Выбранный опыт </h1>");
+                out.println("</div>");
+            out.println("<p><input type=\"button\" onclick=\"history.back();\" value=\"Назад\"></p>");
+            Connection con = ConnPool.getConnection();
+            String sOp = "select nametask, descrtask from  pr.task where id="+sId;
+        
+            Statement op = con.createStatement();
+
+            
+            ResultSet resultSet = op.executeQuery(sOp);
+            resultSet.next();
+            String nm = resultSet.getString(1);
+            String desc = resultSet.getString(2);
+            
+            out.println("<p class=\"style-p\">Название опыта: " +  nm + "</p>");
+                      
+            out.println("<p class=\"style-p\"> Краткое описание опыта: " + desc + "</p>");
+            
+            out.println("<h4> Выберете метод машинного обучения</h4>");
+    //        out.println("<div class=\"select\">");
+            //выбор метода обучения 
+            String qOp = "select name from pr.method";
+            ResultSet resMeth = op.executeQuery(qOp);
+            
+            out.println("<form action= \"clientview?act=domethod&id="+id+"\" method=\"post\">");
+            out.println("<select name=\"meth\" id=\"meth\" size=\"1\">");
+            out.println("<option value=\"null\" selected>--Выберете метод--</option>");
+            while (resMeth.next()) {
+                String meth = resMeth.getString(1);
+                out.println("<option value=\"lin\">"+ meth+ "</option>");
+            }     
+            out.println("</select>");
+            
+         //    out.println("<br>");
+         //   out.println("<form name = \"method\" action= \"clientview?act=domethod\" method=\"post\">");
+         //   out.println("<div class=\"container-button\" align=left>");
+            out.println("<input type = \"submit\" value = \"Принять\" id =\"submit\" />");
+           // out.println("</div>");
+           out.println("</form>");
+      //      out.println("</div>");
+            out.println("</div>");
+           
+             ConnPool.putConnection(con);
+            
+            }
+        catch ( SQLException e ) {
+       out.println("<p>cardTask не выполнено !  " + e.getMessage() + "<p>") ;;
+      }
+      catch ( InterruptedException ei ) {
+          ei.getMessage();
+      }    
+    }
+    
+//-------Страница с результатом метода
+    public void MethodML (HttpServletRequest request, HttpServletResponse response)
+          /*  throws ServletException, IOException, InterruptedException */  {
+        try {
+            response.setContentType("text/html;charset=UTF-8");
+            PrintWriter out = response.getWriter();
+            String sId = request.getParameter("id");
+            out.println("<p>Запуск программы </p>");
+            
+            // указываем в конструкторе ProcessBuilder,
+            // что нужно запустить программу ls с параметрами -l /dev
+            ProcessBuilder procBuilder = new ProcessBuilder("python3", "/home/user/Works/o1.py", sId);
+            
+            // перенаправляем стандартный поток ошибок на
+            // стандартный вывод
+            procBuilder.redirectErrorStream(true);
+
+            // запуск программы
+            Process process = procBuilder.start();
+            // читаем стандартный поток вывода
+        // и выводим на экран
+        InputStream stdout = process.getInputStream();
+        InputStreamReader isrStdout = new InputStreamReader(stdout);
+        BufferedReader brStdout = new BufferedReader(isrStdout);
+        
+        out.println("<div class=\"center\">");
+        out.println("<div class=\"header-h1 header-h1\">");
+        out.println("<h1>Результат</h1>");
+        out.println("</div>");
+
+        String line = null;
+        while((line = brStdout.readLine()) != null) {
+        
+            out.println("<p>"+line+"</p>");
+        }
+        
+        
+        // ждем пока завершится вызванная программа
+        // и сохраняем код, с которым она завершилась в 
+        // в переменную exitVal
+        int exitVal = process.waitFor();
+        out.println("</div>");
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch ( Exception e ) {
+            e.printStackTrace();
+        }
+            
+        
+    }
+        
+    
+//---------Ввод названия и описания опыта
+    public void newTask (HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            response.setContentType("text/html;charset=UTF-8");
+            PrintWriter out = response.getWriter();
+            
+            String sId = request.getParameter("id");
+            
+            out.println("<div class=\"container\">");
+            
+            out.println("<form name = \"newTask\" action= \"clientview?act=addtask&id=" + sId + "\" method=\"post\">");
+            out.println("<div class=\"header-h1 header-h1-left\">");
+            out.println("<h1> Ввод названия и описания примера </h1>");
+            out.println("</div> <br>");
+            
+            out.println("<div class=\"container2\" align=\"left\">");
+            out.println("<div class=\"container3\">");
+            out.println("<div class=\"сontainer-text\">");
+            out.println("<p> Название опыта: ");
+            out.println("</div>");
+            
+            out.println(" <input type = \"text\" name = \"nmTask\"> </p>");
+            out.println("</div>");
+            
+            out.println("<div class=\"container3\">");
+            out.println("<div class=\"сontainer-text\">");
+            out.println("<p> Краткое описание: ");
+            out.println("</div>");
+            
+            out.println(" <input type = \"text\" name = \"descTask\" /> </p>");
+            out.println("</div>");
+            
+            out.println("<div class=\"container-button\" align=left>");
+            out.println("<input type = \"submit\" value = \"Сохранить\" id =\"submit\" />");
+            out.println("<input type=\"button\" onclick=\"history.back();\" value=\"Назад\">");
+            out.println("</div>");  
+            out.println("</div>");
+            out.println("</form>");   
+            out.println("</div>");
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void loadTask (HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        PrintWriter out = response.getWriter();
+        try {
+            response.setContentType("text/html;charset=UTF-8");
+            
+            String sId = request.getParameter("id");
+            
+            //Имя опыта
+            String NameTask = request.getParameter ("nmTask");
+            
+            //Описание опыта
+            String DescriptionTask = request.getParameter ("descTask");
+            
+            if ((request.getParameter("nmTask")!= null) && (request.getParameter("descTask")  != null)) {
+                  
+                Connection con = ConnPool.getConnection();
+         //--------Ввод в БД
+                String sOp = "insert into pr.task(nametask, descrtask,idexample) values('" 
+                        + NameTask + "', '" + DescriptionTask +"', " + sId + ")";
+               
+                Statement op = con.createStatement();
+
+                op.execute(sOp);
+               
+                ConnPool.putConnection(con) ;
+                response.sendRedirect("clientview?act=cardexample&id="+sId);
+            }
+            
+        }
+        catch ( SQLException e ) {
+         out.println("<p> loadTask не выполнено " + e.getMessage() + " </p>");
+        }
+        catch ( InterruptedException ei ) {
+          ei.getMessage();
+        }
     }
     
 //---------загрузка названия и описания примера в БД
@@ -317,7 +642,7 @@ public class clientview extends HttpServlet {
             //Описание загружаемых данных
             String DescriptionData = request.getParameter ("descData");
             
-            if ((request.getParameter("nmData")!= null) & (request.getParameter("descData")  != null)) {
+            if ((request.getParameter("nmData")!= null) && (request.getParameter("descData")  != null)) {
                   
                 Connection con = ConnPool.getConnection();
          
@@ -338,13 +663,14 @@ public class clientview extends HttpServlet {
           ei.getMessage();
       }
     }
-  
+  //---------Удаление файла с сервера
         public void deleteF (HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
             response.setContentType("text/html;charset=UTF-8");
             PrintWriter out = response.getWriter();
             
+            String sIdex = request.getParameter("id");
             HttpSession session = request.getSession();
             
             String fn = (String)session.getAttribute("fn");
@@ -352,13 +678,15 @@ public class clientview extends HttpServlet {
             String path = getServletContext().getRealPath("/upload/" + fn);
             System.out.println("path for Delete = " + path);
             File fl = new File (path);
-        //    File fl = new File ("C:/Users/dashk/Documents/Course_project/proba/servInterface/build/web/upload/time_series_covid_19_confirmed.csv");
+       
             System.out.println(fl.getAbsolutePath());
-       //     fl.delete();
+     
             if (fl.delete()) {
             System.out.println("Файл удален");
             }
             else System.out.println("Файл не найден");
+            
+            response.sendRedirect("clientview?act=cardexample&id="+sIdex);
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -366,14 +694,14 @@ public class clientview extends HttpServlet {
             e.printStackTrace();
         }
     }
-    
+//---------Заполнение БД данными из файла    
     public void ColumnNM (HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         PrintWriter out = response.getWriter();
         try {
             response.setContentType("text/html;charset=UTF-8");
             
-             String sIdex = request.getParameter("id");
+            String sIdex = request.getParameter("id");
             HttpSession session = request.getSession();
             
             String fname = (String)session.getAttribute("fn");
@@ -434,10 +762,8 @@ public class clientview extends HttpServlet {
                   
                         op.execute(sOp);
                     }
-               
                 }
              
-               
                 // считываем остальные строки в цикле
                 line = reader.readLine();
                 istr++;
@@ -447,6 +773,7 @@ public class clientview extends HttpServlet {
             
             reader.close();
             fr.close();
+            response.sendRedirect("clientview?act=cardexample&id="+sIdex);
         }
         catch ( SQLException e ) {
         out.println("<p> ColumnNM не выполнено" + e.getMessage() + "<p>") ;
@@ -455,7 +782,7 @@ public class clientview extends HttpServlet {
           ei.getMessage();
       }
     }
-        
+//------------Вывод содержимого файла на экран       
     public void outFile (HttpServletRequest request, HttpServletResponse response, String filenm)
             throws ServletException, IOException {
         try {
@@ -495,7 +822,7 @@ public class clientview extends HttpServlet {
             out.println("<input type = \"submit\" value = \"Принять\" id =\"submit\" />");
             out.println("</form>"); 
             
-            out.println("<form action=\"clientview?act=delFile\" method=\"post\" enctype=\"multipart/form-data\">");
+            out.println("<form action=\"clientview?act=delFile&id="+idex+"\" method=\"post\" enctype=\"multipart/form-data\">");
             out.println("<input type=\"submit\" id =\"btn\" value=\"Назад\">");
             out.println("</form>"); 
             
@@ -509,11 +836,12 @@ public class clientview extends HttpServlet {
                     
             }
             out.println("</tr>");
-                            
+      
+           int num = 0;
             line = reader.readLine();
               
-            while (line != null) {  
-                         
+            while ((line != null) && (num < 10) ) {  
+                   num++;      
                 //разбиваем строку по разделителю
                 subStr = line.split(delimeter); //вкл., если out.println("<p>" + subStr[i] + "</p>"); и out.println("<p>" + Arrays.asList(subStr) + "</p>");
                 out.println("<tr>"); 
@@ -547,8 +875,9 @@ public class clientview extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-
+            
+            response.setCharacterEncoding("UTF-8");
+            request.setCharacterEncoding("UTF-8");
             open(request, response);
                     
            if(request.getParameter("act") != null) {
@@ -570,9 +899,7 @@ public class clientview extends HttpServlet {
                 }
                 //загрузка файла на сервер
                 if(request.getParameter("act").equals("UploadFile")){
-                    UploadFile(request, response);
-                 //   outFile(request, response);
-                 //   response.sendRedirect("clientview");
+                    UploadFile(request, response);                 
                 }
                 
                 //загрузка файла в БД
@@ -583,6 +910,26 @@ public class clientview extends HttpServlet {
                 //удаление файла из сервера
                 if(request.getParameter("act").equals("delFile")){ 
                     deleteF(request, response);
+                }
+                //переход на стартовую страницу
+                if(request.getParameter("act").equals("startform")){ 
+                    startForm(request, response);
+                }
+                //создание нового опыта
+                if(request.getParameter("act").equals("addtaskform")){ 
+                    newTask(request, response);
+                }
+                //загрузка нового опыта в БД
+                if(request.getParameter("act").equals("addtask")){ 
+                    loadTask(request, response);
+                }
+                //загрузка нового опыта в БД
+                if(request.getParameter("act").equals("cardtask")){ 
+                    cardTask(request, response);
+                }
+                //выбор метода
+                if(request.getParameter("act").equals("domethod")){ 
+                    MethodML(request, response);
                 }
                 
             }
