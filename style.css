@@ -1,0 +1,307 @@
+* {
+    box-sizing: border-box;
+}
+.center {
+	padding: 2px 40px 50px 40px;
+	margin: auto;
+}
+/* HEADER */
+a {
+	color: black;
+}
+h2,h3,h4,p {	
+	font-family: 'Times New Roman', Times, serif;    
+	padding:0px;
+	margin: 0px;
+}
+h1 {    
+	font-family: 'Times New Roman', Times, serif;    
+	margin: 0px;
+	padding: 4px;
+	font-size: 200%;	
+}
+h2 {    font-size: 180%;	}
+h3 {    font-size: 160%;	}
+h4 {    font-size: 125%;	}
+p {		font-size: 100%;	}
+.style-p { 
+	padding: 0px;
+	font-weight: 600;
+	margin: 15px 0px;
+	font-family: 'Bahnschrift Light', Times, serif;  
+}
+.header-h1 h3, .header-h1 h1, h3,h4 {
+	font-family: 'Century Gothic';
+    position: relative;
+    padding-bottom: .5rem;
+    text-transform: uppercase;
+    text-align: center;
+    color: #008b8b;
+}
+h3,h4 {
+    text-align: left;
+    padding: 0px;
+    margin: 10px 0px;
+}
+.header-h1 h3::before, h1::before {
+    content: "";
+    position: absolute;
+    border-bottom: 2px solid #008b8b;
+    bottom: .25rem;
+    left: 50%;
+    width: 40%;
+    transform: translateX(-50%);
+}
+.header-h1 h3::after, h1::after {
+	content: "";
+    position: absolute;
+    border-bottom: 2px solid #008b8b;
+    bottom: 0;
+    left: 50%;
+    width: 20%;
+    transform: translateX(-50%);
+}
+.header-h1-left h1 {
+    text-align: left;
+}
+.header-h1-left h1::before,
+.header-h1-left h1::after {
+    left: 0;
+    transform: translateX(0);
+}
+/* BUTTON */
+.buttonauto {
+	width: 960px;
+	margin:auto;
+	overflow: hidden;
+}
+input[type=submit], input[type=button] {
+	width: 190px;
+    padding: 12px 28px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 100%;
+	font-family: 'Times New Roman', Times, serif;
+   	margin: 3px 3px 3px 0px;
+    -webkit-transition-duration: 0.4s;
+    /*время реагирования наведения на кнопку*/
+    transition-duration: 0.4s;
+    cursor: pointer;
+}
+input[type=submit], input[type=button] {
+    background-color: #dcdcdc;
+    color: black;
+    border-radius: 2px;
+    border: 2px solid #b5b8b1;
+}
+input[type=submit]:hover {
+    background-color: #b5b8b1;
+    border: 2px solid #b5b8b1;
+}
+input[type=button]:hover {
+    background-color: #b5b8b1;
+    border: 2px solid #b5b8b1;
+}
+.inputfile {
+	position: absolute;
+	overflow: hidden;
+	z-index: -1;
+	width: 0.1px;
+	height: 0.1px;
+	opacity: 0;
+}
+.inputfile + label {
+	width: 190px;
+	text-align: center;
+	overflow: hidden;
+	white-space: nowrap;
+	vertical-align: top;
+	text-overflow: ellipsis;
+	display: inline-block;	
+	margin: 3px 5px 3px 0px;
+	cursor: pointer;
+	background-color: #dcdcdc;
+	border: 2px solid #b5b8b1;
+	padding: 12px 10px;
+	color: black;
+}
+.inputfile:focus + label, 
+.inputfile + label:hover {
+    background-color: #b5b8b1;
+    border: 2px solid #b5b8b1;
+}
+/* TABLE */
+.line1 {
+	max-width:100%;
+	overflow: auto;
+}
+.table1 {
+	font-family: 'Times New Roman', Times, serif;
+	font-size:105%;
+	background: white;
+	border: 0px solid white;
+	width:960px;
+	border-collapse:collapse;
+	text-align:left;
+	margin:auto;
+}
+.table1 td {
+	border-bottom: 1px solid #ccc;
+	color: black;
+	padding: 6px 3px;
+}
+.table1 th {
+	font-weight: 900;
+    text-align: left;
+    background-color: #00b3b3;
+	color: black;
+	border-bottom: 1px solid black;
+	padding: 8px 6px;
+}
+.table1 tr:hover { 
+	background-color: #b5b8b1; 
+}
+.table2 {
+	margin: 3px 0px;
+	font-family: 'Times New Roman', Times, serif;
+	font-size:105%;
+	background: white;
+    border-style: hidden;
+	border-collapse:collapse;
+	text-align: center;
+}
+.table2 td {
+	border-right: 1px solid black;
+	border-bottom: 1px solid black;
+	color: black;
+	padding: 6px 15px;
+}
+.table2 th {
+ 	border-right: 1px solid black;
+    text-align: center;
+    background-color: #00b3b3;
+    font-weight:normal;
+	color: black;
+	border-bottom: 1px solid black;
+	padding: 8px 6px;
+}
+.table2 tr:nth-child(even) {
+	background-color: #e1e8e8;
+}
+.table2 tr:nth-child(odd) {
+	background-color: white;
+}
+.table2 tr:hover { 
+	background-color: #b5b8b1; 
+}
+/* TYTE = TEXT */
+input[type="text"] {
+	border: 1px solid black;
+	border-radius: 3px; 
+	-webkit-border-radius: 3px; 
+	-moz-border-radius: 3px; 
+	-khtml-border-radius: 3px; 
+	background: #ffffff !important;
+	outline: none; 
+	padding: 0px 5px;
+	height: 24px; 
+	width: 400px; 
+	color: black; 
+	font-size: 100%; 
+	font-family: 'Times New Roman', Times, serif;
+}
+/* CONTAINER */
+.container {
+	border: 1px solid black;
+	box-shadow: 0 0 5px 2px;
+	padding: 10px;
+	background-color: #edfafa;
+	width: 690px;
+	height: 390px;
+	margin: 0 auto;
+	position: absolute;
+	left: 0;
+	right: 0;
+    top: 50%;
+    transform: translate(0, -60%);
+}
+.container2 {
+	float: left;
+	position: absolute;
+	left: 0;
+    top: 50%;
+    transform: translate(0, -50%);
+    margin-left:10px;
+}
+.container3 {
+	clear:both; 
+	text-align:right;
+	line-height: 50px;
+}
+.сontainer-text {
+	float:left;	
+	font-weight: 600;
+	padding-right: 10px;
+	top: 50%;
+    transform: translate(0, 0%);
+} 
+
+.container-button {
+	float: right;
+	width: 400px;
+	margin-top: 10px;
+}
+.container4 {
+	max-width:100%;
+	overflow: auto;
+}
+select {
+   -webkit-appearance:none;
+   -moz-appearance:none;
+   -ms-appearance:none;
+   appearance:none;
+   outline:0;
+   box-shadow:none;
+   border:!important;
+   background: #dcdcdc;
+   background-image: none;
+   flex: 10;
+   padding: 0 .5em;
+   color: black;
+   cursor:pointer;
+   font-size: 100%;
+   font-family: 'Times New Roman', Times, serif;
+   border: 0px solid white;
+}
+select::-ms-expand {
+   display: none;
+}
+.select {
+   position: relative;
+   display: flex;
+   width: 16em;
+   height: 3em;
+   line-height: 3;
+   background: white;
+   overflow: hidden;
+   border-radius: 2px;
+   border: 2px solid #b5b8b1;
+}
+.select::after {
+   content: '\25BC';
+   position: absolute;
+   top: 0;
+   right: 0;
+   padding: 0 1em;
+   background: #dcdcdc;
+   cursor:pointer;
+   pointer-events:none;
+   transition:.25s all ease;
+}
+.select:hover::after {
+   color: #008b8b;
+}
+.select:hover {
+	border: 2px solid #008b8b;
+}
