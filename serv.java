@@ -1,3 +1,8 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package serv;
 
 import java.io.BufferedReader;
@@ -24,6 +29,8 @@ import java.sql.Statement;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletContext;
 import org.apache.commons.fileupload.FileItem;
@@ -52,15 +59,7 @@ public class clientview extends HttpServlet {
             out.println("<head>");
             out.println("<title>Опыты по машинному обучению</title>"); 
              out.println("<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\"/>");
-/*          
-            out.println("<style>");
-            out.println(".center {width:700px;padding:10px; margin:auto;}");
-            out.println("table{font-family: \"Lucida Sans Unicode\", \"Lucida Grande\", Sans-Serif;font-size:13px;background: white;max-width:50%;width:960px;border-collapse:collapse;text-align:left;}");
-            out.println("th {font-weight:normal;color: #039;border-bottom: 1px solid #6678b1;padding:8px 6px;}");
-            out.println("td {border-bottom: 1px solid #ccc;color: #669;padding: 6px 3px;transition: .3s linear;}");
-            out.println("tr:hover td {color: #6699ff;");
-            out.println("</style>");
- */           
+          
             out.println("</head>");
             out.println("<body>");
         }
@@ -290,6 +289,147 @@ public class clientview extends HttpServlet {
     	}
     
     
+    public void newUpload (HttpServletRequest request, HttpServletResponse response) 
+            throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        
+    		//проверяем является ли полученный запрос multipart/form-data
+    		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
+    		if (!isMultipart) {
+    			response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+    			return;
+    		}
+                String tId = request.getParameter("idt");
+                
+                System.out.println("--- 1 ---");
+     
+    		// Создаём класс фабрику 
+    		DiskFileItemFactory factory = new DiskFileItemFactory();
+     
+    		// Максимальный буфера данных в байтах,
+    		// при его привышении данные начнут записываться на диск во временную директорию
+    		// устанавливаем один мегабайт
+    		factory.setSizeThreshold(1024*1024);
+    		
+    		// устанавливаем временную директорию
+    		File tempDir = (File)getServletContext().getAttribute("javax.servlet.context.tempdir");
+    		factory.setRepository(tempDir);
+
+                System.out.println("--- 2 ---");
+                
+    		//Создаём сам загрузчик
+    		ServletFileUpload upload = new ServletFileUpload(factory);
+    		
+    		//максимальный размер данных который разрешено загружать в байтах
+    		//по умолчанию -1, без ограничений. Устанавливаем 10 мегабайт. 
+    		upload.setSizeMax(1024 * 1024 * 10);
+
+                System.out.println("--- 3 ---");
+                
+    		try {
+    			List items = upload.parseRequest(request);
+    			Iterator iter = items.iterator();
+    			FileItem item = null;
+    			while (iter.hasNext()) {
+                System.out.println("--- !!! ---");
+                            
+    			     item = (FileItem) iter.next();
+                                 item.getName();
+    			    if (item.isFormField()) {
+    			    	//если принимаемая часть данных является полем формы			    	
+    			        processFormField(item);
+    			    } else {
+    			    	//в противном случае рассматриваем как файл
+    			        processUploadedFile(item);
+    			    }
+                            
+    			}
+                //        String fn = null;
+                         session.setAttribute("newfl", item.getName());
+                        outFileNew ( request,  response,  item.getName());
+    		} catch (Exception e) {
+    			e.printStackTrace();
+    			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    			return;
+    		}		
+    	}
+    
+    public void outFileNew (HttpServletRequest request, HttpServletResponse response, String filenm)
+            throws ServletException, IOException {
+        try {
+            response.setContentType("text/html;charset=UTF-8");
+            PrintWriter out = response.getWriter();
+            String id = request.getParameter("id");
+            String idt = request.getParameter("idt");
+      //      System.out.println("Вывод OutFile");
+      //      String filein = request.getParameter("item");
+            String path = getServletContext().getRealPath("/upload/" + filenm);
+            File file = new File(path);
+            //создаем объект FileReader для объекта File
+            FileReader fr = new FileReader(file);
+            //создаем BufferedReader с существующего FileReader для построчного считывания
+            BufferedReader reader = new BufferedReader(fr);
+            // считаем сначала первую строку
+            String line = reader.readLine();
+            String[] subStr;
+            String delimeter = ",(?!\\s)";
+
+            subStr = line.split(delimeter);
+            
+            out.println("<form action=\"clientview?act=calcPred&id="+id+"&idt="+idt+"\" method=\"post\" enctype=\"multipart/form-data\">");
+            out.println("<input type = \"submit\" value = \"Рассчитать\" id =\"submit\" />");
+            out.println("</form>"); 
+            
+            out.println("<form action=\"clientview?act=delNew&id="+id+"&idt="+idt+"\" method=\"post\" enctype=\"multipart/form-data\">");
+            out.println("<input type=\"submit\" id =\"btn\" value=\"Назад\">");
+            out.println("</form>"); 
+            
+            out.println("<table wight=50% border=1>");
+            out.println("<tr>"); 
+            for(int i = 0; i < subStr.length; i++) {  //for убрать при out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                      
+                    out.println("<th>");   
+                    out.println( subStr[i]);
+                    out.println("</th>"); 
+                    
+            }
+            out.println("</tr>");
+      
+           int num = 0;
+            line = reader.readLine();
+              
+            while ((line != null) && (num < 10) ) {  
+                   num++;      
+                //разбиваем строку по разделителю
+                subStr = line.split(delimeter); //вкл., если out.println("<p>" + subStr[i] + "</p>"); и out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                out.println("<tr>"); 
+                
+                for(int i = 0; i < subStr.length; i++) {  //for убрать при out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                    
+                    out.println("<td>");    
+                    out.println( subStr[i] );
+                    out.println("</td>");
+                }
+                
+                out.println("</tr>");
+             //   out.println("<p>" + Arrays.asList(subStr) + "</p>");
+               
+                // считываем остальные строки в цикле
+                line = reader.readLine(); //вкл., если out.println("<p>" + subStr[i] + "</p>"); и out.println("<p>" + Arrays.asList(subStr) + "</p>");
+            }
+            
+            out.println("</table>");
+            reader.close();
+            fr.close();
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    
 //-------страница примера с возможностью добавить файл
     public void cardExample (HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -315,17 +455,16 @@ public class clientview extends HttpServlet {
             String nm = resultSet.getString(1);
             String desc = resultSet.getString(2);
             
-            out.println("<p class=\"style-p\"> Наименование: " +  nm + "</p>");
+            out.println("<p class=\"style-p2\"> Наименование: " +  nm + "</p>");
                       
-            out.println("<p class=\"style-p\"> Краткое описание: " + desc + "</p>");
+            out.println("<p class=\"style-p2\"> Краткое описание: " + desc + "</p>");
             
             String sOps = "select id from  pr.colnm where idexample="+id;
   //           Statement op = con.createStatement();
            ResultSet resId = op.executeQuery(sOps);
            
             if (resId.next()) {
-                    
-                
+                                    
                 out.println("<h3>Ваши данные</h3>");
                 out.println("<div class=\"line1\">");
                 //выборка заголовков
@@ -436,48 +575,143 @@ public class clientview extends HttpServlet {
                 out.println("<div class=\"header-h1 header-h1\">");
                 out.println("<h1> Выбранный опыт </h1>");
                 out.println("</div>");
-            out.println("<p><input type=\"button\" onclick=\"history.back();\" value=\"Назад\"></p>");
-            Connection con = ConnPool.getConnection();
-            String sOp = "select nametask, descrtask from  pr.task where id="+sId;
-        
-            Statement op = con.createStatement();
+                
+                Connection con = ConnPool.getConnection();
+                String sOp = "select nametask, descrtask from  pr.task where id="+sId;
 
-            
-            ResultSet resultSet = op.executeQuery(sOp);
-            resultSet.next();
-            String nm = resultSet.getString(1);
-            String desc = resultSet.getString(2);
-            
-            out.println("<p class=\"style-p\">Название опыта: " +  nm + "</p>");
-                      
-            out.println("<p class=\"style-p\"> Краткое описание опыта: " + desc + "</p>");
-            
-            out.println("<h4> Выберете метод машинного обучения</h4>");
-    //        out.println("<div class=\"select\">");
-            //выбор метода обучения 
-            String qOp = "select name from pr.method";
-            ResultSet resMeth = op.executeQuery(qOp);
-            
-            out.println("<form action= \"clientview?act=domethod&id="+id+"\" method=\"post\">");
-            out.println("<select name=\"meth\" id=\"meth\" size=\"1\">");
-            out.println("<option value=\"null\" selected>--Выберете метод--</option>");
-            while (resMeth.next()) {
-                String meth = resMeth.getString(1);
-                out.println("<option value=\"lin\">"+ meth+ "</option>");
-            }     
-            out.println("</select>");
-            
-         //    out.println("<br>");
-         //   out.println("<form name = \"method\" action= \"clientview?act=domethod\" method=\"post\">");
-         //   out.println("<div class=\"container-button\" align=left>");
-            out.println("<input type = \"submit\" value = \"Принять\" id =\"submit\" />");
-           // out.println("</div>");
-           out.println("</form>");
-      //      out.println("</div>");
-            out.println("</div>");
-           
-             ConnPool.putConnection(con);
-            
+                Statement op = con.createStatement();
+
+                ResultSet resultSet = op.executeQuery(sOp);
+                resultSet.next();
+                String nm = resultSet.getString(1);
+                String desc = resultSet.getString(2);
+
+                out.println("<p class=\"style-p2\">Название опыта: " +  nm + "</p>");
+
+                out.println("<p class=\"style-p2\"> Краткое описание опыта: " + desc + "</p>");
+
+                String idM = request.getParameter("meth");
+
+                String check = "select idcol from pr.usrcol where idtask="+sId;
+                ResultSet checkSet = op.executeQuery(check);
+            //    checkSet.next();
+                if(checkSet.next()) {
+
+                    String chosenDt = "select cl.name from pr.usrcol uc, pr.colnm cl where uc.idcol=cl.id and maindt=0 and idtask="+sId;
+                    ResultSet chosenD = op.executeQuery(chosenDt);
+                    chosenD.next();
+                    String dtMain = chosenD.getString(1);
+                    out.println("<p class=\"style-p\"> Целевые данные: " + dtMain + "</p>");
+
+                    String chos = "select cl.name from pr.usrcol uc, pr.colnm cl where uc.idcol=cl.id and maindt=1 and idtask="+sId;
+                    ResultSet chosD = op.executeQuery(chos);
+
+                    out.println("<p class=\"style-p\"> Выбранные данные: " );
+                    while (chosD.next()){
+                        String dt = chosD.getString(1);
+                         out.println( dt );
+                    }
+                     out.println( "</p>" );
+
+                     int i=-1;
+                    String resTr = "select mark, val from pr.res where idtask="+sId;
+                    ResultSet resSet = op.executeQuery(resTr);
+                    out.println("<h4>Результат обучения:</h4>");
+                    while (resSet.next()){
+                        int mark = resSet.getInt(1);
+                        double valT = resSet.getDouble(2);
+                        if (mark == 0){
+                            out.println("<p class=\"style-p\">  Независимый параметр : "+valT+"</p>");
+                        }
+                        else if (mark == 1) {
+                            out.println("<p class=\"style-p\">  R2: "+valT+"</p>");
+                        }
+                        else out.println("<p class=\"style-p\"> Коэффициент "+i+": "+valT+"</p>");
+                        i++;
+                    }
+                    
+                    out.println("<h4>Загрузка файла для прогнозирования</h4>");
+                    //Загразка файла для прогнозирования
+                    out.println("<form action=\"clientview?act=newUpload&id="+id+"&idt="+sId+"\" method=\"post\" enctype=\"multipart/form-data\">");          
+                    out.println ("<p><input type=\"file\" name=\"f\">");
+                    out.println ("<input type=\"submit\" value=\"Предпросмотр\"> </p>");
+                    out.println("</form>"); 
+                    
+                }
+                else {
+                    //если метод обучения выбран
+                    String checkMeth = "select idmeth from pr.task where idmeth is not null and id="+sId;
+                    ResultSet chM = op.executeQuery(checkMeth);
+                    
+                    if(chM.next()){
+                         out.println("<h4> Выберете столбец с целевыми данными:</h4>");
+                         String mOp = "select id,name from pr.colnm where idexample="+id; //вывод названий столбцов
+                         ResultSet rMeth = op.executeQuery(mOp);
+
+                         out.println("<form action= \"clientview?act=domet&id="+id+"&idt="+sId+"\" method=\"post\">");
+                         out.println("<select name=\"maindt\" id=\"maindt\" size=\"1\">");
+                         out.println("<option value=\"null\" selected>--Выберете колонку--</option>");              
+                         while (rMeth.next()) {
+                             int idCol = rMeth.getInt(1);
+                             String nmCol = rMeth.getString(2);
+                             out.println("<option value=\""+idCol+"\">"+ nmCol+ "</option>");
+                         }     
+                         out.println("</select>");
+
+                         out.println("<br>");
+                         ResultSet reMeth = op.executeQuery(mOp);
+                         out.println("<br>");
+                         out.println("<h4>Выберете данные для обработки:</h4>");
+                        out.println("<div class=\"divcl\">");
+                        
+                        while (reMeth.next()) {
+                                int idC = reMeth.getInt(1);
+                                String nmC = reMeth.getString(2);
+                                out.println("<label class=\"contain\">");
+                                out.println("<input type=\"checkbox\" name=\"nmCol\" value="+idC+">"+nmC);
+                                out.println("<span class=\"checkmark\"></span>");
+                                out.println("</label>");
+                         }
+                         out.println("<br>");
+                         out.println("</div>");
+                         out.println("<p><input type = \"submit\" value = \"Принять\" id =\"submit\" /></p>");
+                         out.println("</form>");
+                     }
+                     //если метод обучения НЕ выбран
+                    else { 
+                         out.println("<br>");
+                         out.println("<h4> Выберете метод машинного обучения</h4>");
+                 //        out.println("<div class=\"select\">");
+                         //выбор метода обучения 
+                         String qOp = "select id,name from pr.method";
+                         ResultSet resMeth = op.executeQuery(qOp);
+
+                         out.println("<form action= \"clientview?act=method&id="+id+"&idt="+sId +"\" method=\"post\">");
+                         out.println("<select name=\"meth\" id=\"meth\" size=\"1\">");
+                         out.println("<option value=\"null\" selected>--Выберете метод--</option>");
+                         while (resMeth.next()) {
+                             int idMet = resMeth.getInt(1);
+                             String meth = resMeth.getString(2);
+                             out.println("<option value=\""+idMet+"\">"+ meth+ "</option>");
+                         }     
+                     out.println("</select>");
+
+                     //    out.println("<br>");
+                     //   out.println("<form name = \"method\" action= \"clientview?act=domethod\" method=\"post\">");
+                     //   out.println("<div class=\"container-button\" align=left>");
+                        out.println("<input type = \"submit\" value = \"Принять\" id =\"submit\" />");
+                       // out.println("</div>");
+                       out.println("</form>");
+                  //      out.println("</div>");
+                        out.println("</div>");
+                     }
+
+                }
+                out.println("<form action=\"clientview?act=cardexample&id="+id+"\" method=\"post\" enctype=\"multipart/form-data\">");
+                out.println("<input type=\"submit\" value=\"Назад\">");
+                out.println("</form>");
+
+                ConnPool.putConnection(con);
             }
         catch ( SQLException e ) {
        out.println("<p>cardTask не выполнено !  " + e.getMessage() + "<p>") ;;
@@ -487,18 +721,93 @@ public class clientview extends HttpServlet {
       }    
     }
     
-//-------Страница с результатом метода
+    public void loadIdMeth (HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        PrintWriter out = response.getWriter();
+        try {
+            response.setContentType("text/html;charset=UTF-8");
+            
+            String Id = request.getParameter("id"); //пример
+            String tId = request.getParameter("idt"); //опыт
+            
+            String idM = request.getParameter("meth");
+            System.out.println ("Id= " + Id + " tId= "+tId +" idM= "+idM);
+           
+                Connection con = ConnPool.getConnection();
+         //--------Ввод в БД
+                String sOp = "update pr.task set idmeth="+idM+" where id="+tId;
+               
+                Statement op = con.createStatement();
+
+                op.execute(sOp);
+               
+                ConnPool.putConnection(con) ;
+                response.sendRedirect("clientview?act=cardtask&id="+Id+"&idt="+tId);
+            
+            
+        }
+        catch ( SQLException e ) {
+         out.println("<p> loadTask не выполнено " + e.getMessage() + " </p>");
+        }
+        catch ( InterruptedException ei ) {
+          ei.getMessage();
+        }
+    }
+    
+    //Ввод в БД данных для обучения
+    public void inDB (HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("text/html;charset=UTF-8");
+            PrintWriter out = response.getWriter();
+        try{
+        String maindt = request.getParameter("maindt");//целевой столбец (ответ пользователя)        
+        String idt = request.getParameter("idt"); //id опыта
+        String [] col = request.getParameterValues("nmCol"); //массив выбранных столбцов
+        
+     //   int cCol [] = Integer.parseInt(col);
+        Connection con = ConnPool.getConnection();
+        Statement op = con.createStatement();
+        String qOp = "insert into pr.usrcol values ("+idt+","+maindt+",0)"; //ввод целевого столбца     
+         op.execute(qOp);
+        
+        for (int i = 0; i < col.length; i++) {
+             System.out.println(col[i]); 
+            String rOp = "insert into pr.usrcol values ("+idt+","+col[i]+",1)";
+            op.execute(rOp);
+        }
+   
+        ConnPool.putConnection(con);
+       // out.println("<p>Занесение в БД столбцов InDB ЗАВЕРШЕННО</p>");
+        MethodML(request,response);
+        }
+        catch ( SQLException e ) {
+       out.println("<p>inDB не выполнено !  " + e.getMessage() + "<p>") ;;
+      }
+      catch ( InterruptedException ei ) {
+          ei.getMessage();
+      }
+    }
+    
+//-------Выполнение скрипта ОБУЧЕНИЯ Python 
     public void MethodML (HttpServletRequest request, HttpServletResponse response)
           /*  throws ServletException, IOException, InterruptedException */  {
         try {
             response.setContentType("text/html;charset=UTF-8");
             PrintWriter out = response.getWriter();
             String sId = request.getParameter("id");
-            out.println("<p>Запуск программы </p>");
+            String idT = request.getParameter("idt");
             
+            Connection con = ConnPool.getConnection();
+            Statement op = con.createStatement();
+            //id выбранного метода
+            String checkMeth = "select idmeth from pr.task where id="+idT;
+            ResultSet chM = op.executeQuery(checkMeth);
+            chM.next();
+            String idMet = chM.getString(1);
+        //    out.println ("<p>idMet= "+idMet+"</p>");
+          
             // указываем в конструкторе ProcessBuilder,
             // что нужно запустить программу ls с параметрами -l /dev
-            ProcessBuilder procBuilder = new ProcessBuilder("python3", "/home/user/Works/o1.py", sId);
+            ProcessBuilder procBuilder = new ProcessBuilder("python3", "/home/user/Works/o1.py", sId, idMet, idT);
             
             // перенаправляем стандартный поток ошибок на
             // стандартный вывод
@@ -511,24 +820,13 @@ public class clientview extends HttpServlet {
         InputStream stdout = process.getInputStream();
         InputStreamReader isrStdout = new InputStreamReader(stdout);
         BufferedReader brStdout = new BufferedReader(isrStdout);
-        
-        out.println("<div class=\"center\">");
-        out.println("<div class=\"header-h1 header-h1\">");
-        out.println("<h1>Результат</h1>");
-        out.println("</div>");
-
-        String line = null;
-        while((line = brStdout.readLine()) != null) {
-        
-            out.println("<p>"+line+"</p>");
-        }
-        
-        
+          
+        ConnPool.putConnection(con);
         // ждем пока завершится вызванная программа
         // и сохраняем код, с которым она завершилась в 
         // в переменную exitVal
         int exitVal = process.waitFor();
-        out.println("</div>");
+        response.sendRedirect("clientview?act=cardtask&id="+sId+"&idt="+idT);
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -537,11 +835,153 @@ public class clientview extends HttpServlet {
         }
         catch ( Exception e ) {
             e.printStackTrace();
-        }
-            
-        
+        }                    
     }
         
+    //-------Выполнение скрипта ПРЕДСКАЗАНИЯ Python 
+    public void PredictionML (HttpServletRequest request, HttpServletResponse response)
+          /*  throws ServletException, IOException, InterruptedException */  {
+        try {
+            response.setContentType("text/html;charset=UTF-8");
+            PrintWriter out = response.getWriter();
+            Connection con = ConnPool.getConnection();
+            Statement op = con.createStatement();
+            
+            HttpSession session = request.getSession();
+            
+            String sId = request.getParameter("id");
+            String idT = request.getParameter("idt");
+
+            //id выбранного метода
+           // String idMet = request.getParameter("meth");
+            String checkMeth = "select idmeth from pr.task where id="+idT;
+            ResultSet chM = op.executeQuery(checkMeth);
+            chM.next();
+            String idM = chM.getString(1);
+             
+            //путь к файлу
+            String fname = (String)session.getAttribute("newfl");
+            String path = getServletContext().getRealPath("/upload/" + fname);
+            
+            String outPath = getServletContext().getRealPath("/upload/result.csv");
+            
+            // указываем в конструкторе ProcessBuilder,
+            // что нужно запустить программу ls с параметрами -l /dev
+            ProcessBuilder procBuilder = new ProcessBuilder("python3", "/home/user/Works/o2.py", sId, idM, idT, path, outPath);
+            
+            // перенаправляем стандартный поток ошибок на
+            // стандартный вывод
+            procBuilder.redirectErrorStream(true);
+
+            // запуск программы
+            Process process = procBuilder.start();
+            // читаем стандартный поток вывода
+            // и выводим на экран
+            InputStream stdout = process.getInputStream();
+            InputStreamReader isrStdout = new InputStreamReader(stdout);
+            BufferedReader brStdout = new BufferedReader(isrStdout);
+          
+        
+            // ждем пока завершится вызванная программа
+            // и сохраняем код, с которым она завершилась в 
+            // в переменную exitVal
+            int exitVal = process.waitFor();
+            
+            outPredFile(request,response);
+     //       response.sendRedirect("clientview?act=cardtask&id="+sId+"&idt="+idT);
+            }
+            catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            catch ( Exception e ) {
+                e.printStackTrace();
+            }                    
+    }
+    
+    //вывод файла с результатом
+    public void outPredFile (HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            response.setContentType("text/html;charset=UTF-8");
+            PrintWriter out = response.getWriter();
+            String id = request.getParameter("id");
+            String idt = request.getParameter("idt");
+      //      System.out.println("Вывод OutFile");
+      //      String filein = request.getParameter("item");
+            String path = getServletContext().getRealPath("/upload/result.csv");
+            File file = new File(path);
+            //создаем объект FileReader для объекта File
+            FileReader fr = new FileReader(file);
+            //создаем BufferedReader с существующего FileReader для построчного считывания
+            BufferedReader reader = new BufferedReader(fr);
+            // считаем сначала первую строку
+            String line = reader.readLine();
+            String[] subStr;
+            String delimeter = ",(?!\\s)";
+
+            subStr = line.split(delimeter);
+            out.println("<div class=\"center\">");
+            out.println("<div class=\"header-h1 header-h1\">");
+            out.println("<h1> Результат прогноза </h1>");
+            out.println("</div>");
+            out.println("<a href=\"http://192.168.0.108:8080/servInterface/upload/result.csv\" download=\"\">");
+           // out.println("<form action=\"clientview?act=calcPred&id="+id+"&idt="+idt+"\" method=\"post\" enctype=\"multipart/form-data\">");
+         //   out.println("<a href=" + path + " download=\"\">");
+            out.println("<input type = \"submit\" value = \"Скачать файл\" id =\"submit\" />");
+            out.println("</a>");             
+            //out.println("</form>"); 
+            
+            out.println("<form action=\"clientview?act=cardtask&id="+id+"&idt="+idt+"\" method=\"post\" enctype=\"multipart/form-data\">");
+            out.println("<input type=\"submit\" id =\"btn\" value=\"Ок\">");
+            out.println("</form>"); 
+            
+            out.println("<table wight=50% border=1>");
+            out.println("<tr>"); 
+            for(int i = 0; i < subStr.length; i++) {  //for убрать при out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                      
+                    out.println("<th>");   
+                    out.println( subStr[i]);
+                    out.println("</th>"); 
+                    
+            }
+            out.println("</tr>");
+      
+           int num = 0;
+            line = reader.readLine();
+              
+            while ((line != null) && (num < 10) ) {  
+                   num++;      
+                //разбиваем строку по разделителю
+                subStr = line.split(delimeter); //вкл., если out.println("<p>" + subStr[i] + "</p>"); и out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                out.println("<tr>"); 
+                
+                for(int i = 0; i < subStr.length; i++) {  //for убрать при out.println("<p>" + Arrays.asList(subStr) + "</p>");
+                    
+                    out.println("<td>");    
+                    out.println( subStr[i] );
+                    out.println("</td>");
+                }
+                
+                out.println("</tr>");
+             //   out.println("<p>" + Arrays.asList(subStr) + "</p>");
+               
+                // считываем остальные строки в цикле
+                line = reader.readLine(); //вкл., если out.println("<p>" + subStr[i] + "</p>"); и out.println("<p>" + Arrays.asList(subStr) + "</p>");
+            }
+            
+            out.println("</table>");
+            reader.close();
+            fr.close();
+            out.println("</div>");
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
     
 //---------Ввод названия и описания опыта
     public void newTask (HttpServletRequest request, HttpServletResponse response)
@@ -662,6 +1102,39 @@ public class clientview extends HttpServlet {
       catch ( InterruptedException ei ) {
           ei.getMessage();
       }
+    }
+    
+    //---------Удаление прогнозного файла с сервера
+        public void deleteNew (HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            response.setContentType("text/html;charset=UTF-8");
+            PrintWriter out = response.getWriter();
+            
+            String id = request.getParameter("id");
+            String idt = request.getParameter("idt");
+            HttpSession session = request.getSession();
+            
+            String fn = (String)session.getAttribute("fn");
+            System.out.println("fn = " + fn);
+            String path = getServletContext().getRealPath("/upload/" + fn);
+            System.out.println("path for Delete = " + path);
+            File fl = new File (path);
+       
+            System.out.println(fl.getAbsolutePath());
+     
+            if (fl.delete()) {
+            System.out.println("Файл удален");
+            }
+            else System.out.println("Файл не найден");
+            
+            response.sendRedirect("clientview?act=cardtask&id="+id+"&idt="+idt);
+        }
+        catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
   //---------Удаление файла с сервера
         public void deleteF (HttpServletRequest request, HttpServletResponse response)
@@ -802,20 +1275,7 @@ public class clientview extends HttpServlet {
             String line = reader.readLine();
             String[] subStr;
             String delimeter = ",(?!\\s)";
-            
-/*            out.println("<p> <strong> Выберете разделитель: <br />");
-            out.println("<input type=\"radio\" value=\"zap\" name=\"delim\" id=\"delim\" tabindex=\"1\" checked />Запятая <br />");
-            out.println("<input type=\"radio\" value=\"tochzap\" name=\"delim\" id=\"delim\" tabindex=\"2\" />Точка с запятой <br />");
-             String cmd=request.getParameter("delim");
-             if(cmd.equals("zap")) {
-                 delimeter = ",(?!\\s)";
-             }
-             else if (cmd.equals("tochzap")) {
-                 delimeter = ";(?!\\s)";
-             }
-*/            
-         //   subStr = line.split(delimeter);
-           // line = reader.readLine();
+
             subStr = line.split(delimeter);
             
             out.println("<form action=\"clientview?act=loadinDB&id="+idex+"\" method=\"post\" enctype=\"multipart/form-data\">");
@@ -872,7 +1332,7 @@ public class clientview extends HttpServlet {
     }
     
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+            throws ServletException, IOException, SQLException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             
@@ -923,13 +1383,34 @@ public class clientview extends HttpServlet {
                 if(request.getParameter("act").equals("addtask")){ 
                     loadTask(request, response);
                 }
-                //загрузка нового опыта в БД
+                //карточка опыта
                 if(request.getParameter("act").equals("cardtask")){ 
                     cardTask(request, response);
                 }
-                //выбор метода
+                //выбор метода и переход на выбор столбцов
                 if(request.getParameter("act").equals("domethod")){ 
-                    MethodML(request, response);
+                    cardTask(request, response);
+                }
+                //занесение в БД и запуск скрипта Python
+                if(request.getParameter("act").equals("domet")){ 
+                    inDB(request, response);
+                  //  MethodML(request, response);
+                }
+                //загрузка файла для прогноза на сервер
+                if(request.getParameter("act").equals("newUpload")){ 
+                    newUpload(request, response);
+                }
+                //удаление прогнозного файла из сервера
+                if(request.getParameter("act").equals("delNew")){ 
+                    deleteNew(request, response);
+                }
+                //загрузка в БД id метода
+                if(request.getParameter("act").equals("method")){ 
+                    loadIdMeth(request, response);
+                }
+                //Расчет прогноза
+                if(request.getParameter("act").equals("calcPred")){ 
+                    PredictionML(request, response);
                 }
                 
             }
@@ -985,7 +1466,11 @@ public class clientview extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (SQLException ex) {
+            Logger.getLogger(clientview.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
@@ -999,7 +1484,11 @@ public class clientview extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        try {
+            processRequest(request, response);
+        } catch (SQLException ex) {
+            Logger.getLogger(clientview.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     /**
